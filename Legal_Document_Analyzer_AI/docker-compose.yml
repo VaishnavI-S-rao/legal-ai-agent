@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  legal-analyzer:
+    build: .
+    ports:
+      - "9000:9000"
+    environment:
+      - API_TIMEOUT=${API_TIMEOUT:-30}
+      - MAX_RETRIES=${MAX_RETRIES:-3}
+      - RETRY_DELAY=${RETRY_DELAY:-1}
+      - MAX_FILE_SIZE_MB=${MAX_FILE_SIZE_MB:-10}
+      - SUPERWISE_API_URL=${SUPERWISE_API_URL}
+      - SUPERWISE_API_VERSION=${SUPERWISE_API_VERSION}
+      - SUPERWISE_APP_ID=${SUPERWISE_APP_ID}
+      - APP_ENV=${APP_ENV:-development}
+      - DEBUG=${DEBUG:-True}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      # Mount app directory for hot reloading
+      - ./app:/app/app
+      # Mount logs directory
+      - ./logs:/app/logs
+      # Mount requirements.txt to detect dependency changes
+      - ./requirements.txt:/app/requirements.txt
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
